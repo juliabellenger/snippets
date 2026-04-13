@@ -1,0 +1,32 @@
+[
+  {
+    "id": "8e04c888-6137-485d-9439-972e9b32f470",
+    "cleanText": "I'm loving using claude. It makes so many things possible",
+    "inputType": "typed",
+    "categories": [
+      "ai"
+    ],
+    "createdAt": "2026-04-13T01:39:43.816Z",
+    "updatedAt": "2026-04-13T01:41:31.056Z"
+  },
+  {
+    "id": "61d52402-1991-4cc4-8b4f-0a2397677415",
+    "cleanText": "Just finished alterations on my wedding dress. I am so excited for the day to come.",
+    "inputType": "typed",
+    "categories": [
+      "wedding!"
+    ],
+    "createdAt": "2026-04-13T01:40:10.059Z",
+    "updatedAt": "2026-04-13T01:41:25.696Z"
+  },
+  {
+    "id": "79ad388c-314f-4882-83e0-23af8751864f",
+    "cleanText": "Watching cars with Hunter. I love him so much",
+    "inputType": "typed",
+    "categories": [
+      "kids"
+    ],
+    "createdAt": "2026-04-13T01:40:28.832Z",
+    "updatedAt": "2026-04-13T01:41:02.173Z"
+  }
+]

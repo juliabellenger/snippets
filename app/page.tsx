@@ -1,65 +1,107 @@
-import Image from "next/image";
+"use client";
+
+import { useState, useEffect, useCallback } from "react";
+import Link from "next/link";
+import { Snippet, CategorySummary } from "@/lib/types";
+import SnippetCard from "@/components/SnippetCard";
+import SnippetForm from "@/components/SnippetForm";
 
 export default function Home() {
+  const [snippets, setSnippets] = useState<Snippet[]>([]);
+  const [categories, setCategories] = useState<CategorySummary[]>([]);
+  const [showForm, setShowForm] = useState(false);
+
+  const load = useCallback(() => {
+    fetch("/api/snippets")
+      .then((r) => r.json())
+      .then(setSnippets);
+    fetch("/api/categories?summaries=true")
+      .then((r) => r.json())
+      .then(setCategories);
+  }, []);
+
+  useEffect(() => {
+    load();
+  }, [load]);
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
+    <div className="px-4 py-8">
+      {/* Header */}
+      <div className="text-center mb-8">
+        <h1 className="font-heading text-4xl tracking-[0.15em] text-slate">
+          Snippets
+        </h1>
+        <p className="font-script text-2xl text-gold mt-1">
+          save the moments forever
+        </p>
+        <div className="mt-4 mx-auto w-48 border-t border-gold/40" />
+      </div>
+
+      {/* Capture buttons */}
+      <div className="grid grid-cols-2 gap-3 mb-8">
+        <button
+          disabled
+          className="flex flex-col items-center justify-center gap-1 rounded-sm border-[1.5px] border-dashed border-slate/20 bg-cream-light p-6 text-slate-light/40 cursor-not-allowed"
+        >
+          <span className="text-2xl">🎙</span>
+          <span className="font-heading text-sm tracking-wider">Record</span>
+          <span className="font-body text-xs italic">Coming soon</span>
+        </button>
+        <button
+          onClick={() => setShowForm(true)}
+          className="flex flex-col items-center justify-center gap-1 rounded-sm border-[1.5px] border-gold bg-cream-light p-6 text-slate hover:bg-gold-faint transition-colors"
+        >
+          <span className="text-2xl">🪶</span>
+          <span className="font-heading text-sm tracking-wider">Type</span>
+        </button>
+      </div>
+
+      {/* Categories */}
+      {categories.length > 0 && (
+        <div className="mb-8">
+          <h2 className="font-heading text-xs tracking-[0.2em] text-slate-light uppercase mb-3">
+            Categories
+          </h2>
+          <div className="flex flex-wrap gap-2">
+            {categories.map((cat) => (
+              <Link
+                key={cat.name}
+                href={`/category/${encodeURIComponent(cat.name)}`}
+                className="inline-flex items-center gap-1.5 rounded-sm border border-gold/50 bg-cream-light px-3 py-1.5 font-heading text-sm tracking-wider text-slate hover:bg-gold-faint transition-colors"
+              >
+                {cat.name}
+                <span className="text-xs text-gold font-body">
+                  {cat.count}
+                </span>
+              </Link>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Snippet feed */}
+      {snippets.length === 0 ? (
+        <p className="text-center text-slate-light/60 text-sm mt-12 italic">
+          No snippets yet. Tap Type to create your first one.
+        </p>
+      ) : (
+        <div className="flex flex-col gap-3">
+          {snippets.map((s) => (
+            <SnippetCard key={s.id} snippet={s} />
+          ))}
+        </div>
+      )}
+
+      {/* Type modal */}
+      {showForm && (
+        <SnippetForm
+          onSaved={() => {
+            setShowForm(false);
+            load();
+          }}
+          onCancel={() => setShowForm(false)}
         />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
-      </main>
+      )}
     </div>
   );
 }
