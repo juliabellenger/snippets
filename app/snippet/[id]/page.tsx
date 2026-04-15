@@ -59,7 +59,7 @@ export default function SnippetDetail({
         &larr; Back
       </button>
 
-      <div className="rounded-sm border-[1.5px] border-gold/30 bg-cream-light p-5">
+      <div className="rounded-lg border-[1.5px] border-gold/30 bg-cream-light p-5">
         <p className="text-slate leading-relaxed whitespace-pre-wrap">
           {snippet.cleanText}
         </p>

@@ -54,7 +54,7 @@ export default function CategoryInput({ value, onChange }: CategoryInputProps) {
         {value.map((cat) => (
           <span
             key={cat}
-            className="inline-flex items-center gap-1 rounded-sm border border-gold/40 bg-gold-faint px-2 py-0.5 font-heading text-xs tracking-wider text-slate"
+            className="inline-flex items-center gap-1 rounded-lg border border-gold/40 bg-gold-faint px-2 py-0.5 font-heading text-xs tracking-wider text-slate"
           >
             {cat}
             <button
@@ -79,10 +79,10 @@ export default function CategoryInput({ value, onChange }: CategoryInputProps) {
             }
           }}
           placeholder="Add a category..."
-          className="w-full rounded-sm border-[1.5px] border-gold/30 bg-cream px-3 py-2 text-sm text-slate placeholder:text-slate-light/40 focus:border-gold focus:outline-none"
+          className="w-full rounded-lg border-[1.5px] border-gold/30 bg-cream px-3 py-2 text-sm text-slate placeholder:text-slate-light/40 focus:border-gold focus:outline-none"
         />
         {showSuggestions && (
-          <ul className="absolute z-10 mt-1 w-full rounded-sm border border-gold/40 bg-cream-light shadow-lg">
+          <ul className="absolute z-10 mt-1 w-full rounded-lg border border-gold/40 bg-cream-light shadow-lg">
             {suggestions.map((s) => (
               <li
                 key={s}

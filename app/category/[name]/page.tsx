@@ -34,7 +34,7 @@ export default function CategoryPage({
       </button>
 
       <h1 className="text-xl mb-4">
-        <span className="inline-block rounded-sm border border-gold/50 bg-gold-faint px-3 py-1 font-heading tracking-[0.15em] text-slate">
+        <span className="inline-block rounded-lg border border-gold/50 bg-gold-faint px-3 py-1 font-heading tracking-[0.15em] text-slate">
           {categoryName}
         </span>
       </h1>

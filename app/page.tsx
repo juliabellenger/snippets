@@ -117,7 +117,7 @@ export default function Home() {
       <div className="grid grid-cols-2 gap-3 mb-8">
         <button
           onClick={isListening ? stopListening : startListening}
-          className={`flex flex-col items-center justify-center gap-1 rounded-sm border-[1.5px] p-6 transition-colors ${
+          className={`flex flex-col items-center justify-center gap-1 rounded-lg border-[1.5px] p-6 transition-colors ${
             isListening
               ? "border-danger bg-danger/10 text-danger"
               : "border-gold bg-cream-light text-slate hover:bg-gold-faint"
@@ -130,7 +130,7 @@ export default function Home() {
         </button>
         <button
           onClick={openTypeForm}
-          className="flex flex-col items-center justify-center gap-1 rounded-sm border-[1.5px] border-gold bg-cream-light p-6 text-slate hover:bg-gold-faint transition-colors"
+          className="flex flex-col items-center justify-center gap-1 rounded-lg border-[1.5px] border-gold bg-cream-light p-6 text-slate hover:bg-gold-faint transition-colors"
         >
           <span className="text-2xl">🪶</span>
           <span className="font-heading text-sm tracking-wider">Type</span>
@@ -139,7 +139,7 @@ export default function Home() {
 
       {/* Live transcript while speaking */}
       {isListening && (
-        <div className="mb-8 rounded-sm border-[1.5px] border-danger/30 bg-cream-light p-4">
+        <div className="mb-8 rounded-lg border-[1.5px] border-danger/30 bg-cream-light p-4">
           <p className="font-heading text-xs tracking-[0.2em] text-danger uppercase mb-2">
             Listening...
           </p>
@@ -160,7 +160,7 @@ export default function Home() {
               <Link
                 key={cat.name}
                 href={`/category/${encodeURIComponent(cat.name)}`}
-                className="inline-flex items-center gap-1.5 rounded-sm border border-gold/50 bg-cream-light px-3 py-1.5 font-heading text-sm tracking-wider text-slate hover:bg-gold-faint transition-colors"
+                className="inline-flex items-center gap-1.5 rounded-lg border border-gold/50 bg-cream-light px-3 py-1.5 font-heading text-sm tracking-wider text-slate hover:bg-gold-faint transition-colors"
               >
                 {cat.name}
                 <span className="text-xs text-gold font-body">

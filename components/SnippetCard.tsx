@@ -25,7 +25,7 @@ export default function SnippetCard({ snippet }: { snippet: Snippet }) {
   return (
     <Link
       href={`/snippet/${snippet.id}`}
-      className="block rounded-sm border-[1.5px] border-gold/30 bg-cream-light p-4 hover:border-gold/60 transition-colors"
+      className="block rounded-lg border-[1.5px] border-gold/30 bg-cream-light p-4 hover:border-gold/60 transition-colors"
     >
       <p className="text-slate text-sm leading-relaxed truncate">{preview}</p>
       <div className="mt-1.5 flex items-center gap-2 text-xs">
