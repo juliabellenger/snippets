@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
+import { api } from "@/lib/api";
 
 interface CategoryInputProps {
   value: string[];
@@ -14,7 +15,7 @@ export default function CategoryInput({ value, onChange }: CategoryInputProps) {
   const allCategoriesRef = useRef<string[]>([]);
 
   useEffect(() => {
-    fetch("/api/categories")
+    fetch(api("/api/categories"))
       .then((r) => r.json())
       .then((categories) => {
         allCategoriesRef.current = categories;

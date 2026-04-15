@@ -1,8 +1,9 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import Link from "next/link";
 import { Snippet, CategorySummary } from "@/lib/types";
+import { api } from "@/lib/api";
 import SnippetCard from "@/components/SnippetCard";
 import SnippetForm from "@/components/SnippetForm";
 
@@ -10,12 +11,21 @@ export default function Home() {
   const [snippets, setSnippets] = useState<Snippet[]>([]);
   const [categories, setCategories] = useState<CategorySummary[]>([]);
   const [showForm, setShowForm] = useState(false);
+  const [formInitialText, setFormInitialText] = useState("");
+  const [formInputType, setFormInputType] = useState<"typed" | "spoken">(
+    "typed"
+  );
+  const [isListening, setIsListening] = useState(false);
+  const [liveTranscript, setLiveTranscript] = useState("");
+  const recognitionRef = useRef<ReturnType<typeof createRecognition> | null>(
+    null
+  );
 
   const load = useCallback(() => {
-    fetch("/api/snippets")
+    fetch(api("/api/snippets"))
       .then((r) => r.json())
       .then(setSnippets);
-    fetch("/api/categories?summaries=true")
+    fetch(api("/api/categories?summaries=true"))
       .then((r) => r.json())
       .then(setCategories);
   }, []);
@@ -23,6 +33,72 @@ export default function Home() {
   useEffect(() => {
     load();
   }, [load]);
+
+  function createRecognition() {
+    const Ctor = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!Ctor) return null;
+    const recognition = new Ctor();
+    recognition.continuous = true;
+    recognition.interimResults = true;
+    recognition.lang = "en-US";
+    return recognition;
+  }
+
+  function startListening() {
+    const recognition = createRecognition();
+    if (!recognition) {
+      alert("Speech recognition is not supported in this browser.");
+      return;
+    }
+
+    recognitionRef.current = recognition;
+    let finalTranscript = "";
+
+    recognition.onresult = (event: SpeechRecognitionEvent) => {
+      let interim = "";
+      for (let i = event.resultIndex; i < event.results.length; i++) {
+        const transcript = event.results[i][0].transcript;
+        if (event.results[i].isFinal) {
+          finalTranscript += transcript;
+        } else {
+          interim += transcript;
+        }
+      }
+      setLiveTranscript(finalTranscript + interim);
+    };
+
+    recognition.onerror = () => {
+      setIsListening(false);
+      setLiveTranscript("");
+    };
+
+    recognition.onend = () => {
+      // Speech recognition stopped — open the form with what we got
+      setIsListening(false);
+      if (finalTranscript.trim()) {
+        setFormInitialText(finalTranscript.trim());
+        setFormInputType("spoken");
+        setShowForm(true);
+      }
+      setLiveTranscript("");
+    };
+
+    recognition.start();
+    setIsListening(true);
+    setLiveTranscript("");
+  }
+
+  function stopListening() {
+    if (recognitionRef.current) {
+      recognitionRef.current.stop();
+    }
+  }
+
+  function openTypeForm() {
+    setFormInitialText("");
+    setFormInputType("typed");
+    setShowForm(true);
+  }
 
   return (
     <div className="px-4 py-8">
@@ -40,21 +116,38 @@ export default function Home() {
       {/* Capture buttons */}
       <div className="grid grid-cols-2 gap-3 mb-8">
         <button
-          disabled
-          className="flex flex-col items-center justify-center gap-1 rounded-sm border-[1.5px] border-dashed border-slate/20 bg-cream-light p-6 text-slate-light/40 cursor-not-allowed"
+          onClick={isListening ? stopListening : startListening}
+          className={`flex flex-col items-center justify-center gap-1 rounded-sm border-[1.5px] p-6 transition-colors ${
+            isListening
+              ? "border-danger bg-danger/10 text-danger"
+              : "border-gold bg-cream-light text-slate hover:bg-gold-faint"
+          }`}
         >
-          <span className="text-2xl">🎙</span>
-          <span className="font-heading text-sm tracking-wider">Record</span>
-          <span className="font-body text-xs italic">Coming soon</span>
+          <span className="text-2xl">{isListening ? "⏹" : "🎙"}</span>
+          <span className="font-heading text-sm tracking-wider">
+            {isListening ? "Stop" : "Speak"}
+          </span>
         </button>
         <button
-          onClick={() => setShowForm(true)}
+          onClick={openTypeForm}
           className="flex flex-col items-center justify-center gap-1 rounded-sm border-[1.5px] border-gold bg-cream-light p-6 text-slate hover:bg-gold-faint transition-colors"
         >
           <span className="text-2xl">🪶</span>
           <span className="font-heading text-sm tracking-wider">Type</span>
         </button>
       </div>
+
+      {/* Live transcript while speaking */}
+      {isListening && (
+        <div className="mb-8 rounded-sm border-[1.5px] border-danger/30 bg-cream-light p-4">
+          <p className="font-heading text-xs tracking-[0.2em] text-danger uppercase mb-2">
+            Listening...
+          </p>
+          <p className="text-slate text-sm leading-relaxed italic">
+            {liveTranscript || "Start speaking..."}
+          </p>
+        </div>
+      )}
 
       {/* Categories */}
       {categories.length > 0 && (
@@ -82,7 +175,7 @@ export default function Home() {
       {/* Snippet feed */}
       {snippets.length === 0 ? (
         <p className="text-center text-slate-light/60 text-sm mt-12 italic">
-          No snippets yet. Tap Type to create your first one.
+          No snippets yet. Tap Type or Speak to create your first one.
         </p>
       ) : (
         <div className="flex flex-col gap-3">
@@ -92,9 +185,11 @@ export default function Home() {
         </div>
       )}
 
-      {/* Type modal */}
+      {/* Form modal */}
       {showForm && (
         <SnippetForm
+          initialText={formInitialText}
+          inputType={formInputType}
           onSaved={() => {
             setShowForm(false);
             load();

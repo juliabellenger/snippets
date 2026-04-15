@@ -1,7 +1,7 @@
 export interface Snippet {
   id: string;
   cleanText: string;
-  inputType: "typed";
+  inputType: "typed" | "spoken";
   categories: string[];
   createdAt: string;
   updatedAt: string;

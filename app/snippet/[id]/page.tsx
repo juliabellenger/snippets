@@ -3,6 +3,7 @@
 import { useState, useEffect, use } from "react";
 import { useRouter } from "next/navigation";
 import { Snippet } from "@/lib/types";
+import { api } from "@/lib/api";
 import CategoryInput from "@/components/CategoryInput";
 
 export default function SnippetDetail({
@@ -17,7 +18,7 @@ export default function SnippetDetail({
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
-    fetch(`/api/snippets/${id}`)
+    fetch(api(`/api/snippets/${id}`))
       .then((r) => r.json())
       .then((data) => {
         setSnippet(data);
@@ -28,7 +29,7 @@ export default function SnippetDetail({
   async function saveCategories(newCategories: string[]) {
     setCategories(newCategories);
     setSaving(true);
-    const updated = await fetch(`/api/snippets/${id}`, {
+    const updated = await fetch(api(`/api/snippets/${id}`), {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ categories: newCategories }),
@@ -39,7 +40,7 @@ export default function SnippetDetail({
 
   async function handleDelete() {
     if (!confirm("Delete this snippet?")) return;
-    await fetch(`/api/snippets/${id}`, { method: "DELETE" });
+    await fetch(api(`/api/snippets/${id}`), { method: "DELETE" });
     router.push("/");
   }
 

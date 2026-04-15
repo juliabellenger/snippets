@@ -2,24 +2,32 @@
 
 import { useState } from "react";
 import CategoryInput from "./CategoryInput";
+import { api } from "@/lib/api";
 
 interface SnippetFormProps {
   onSaved: () => void;
   onCancel: () => void;
+  initialText?: string;
+  inputType?: "typed" | "spoken";
 }
 
-export default function SnippetForm({ onSaved, onCancel }: SnippetFormProps) {
-  const [text, setText] = useState("");
+export default function SnippetForm({
+  onSaved,
+  onCancel,
+  initialText = "",
+  inputType = "typed",
+}: SnippetFormProps) {
+  const [text, setText] = useState(initialText);
   const [categories, setCategories] = useState<string[]>([]);
   const [saving, setSaving] = useState(false);
 
   async function handleSave() {
     if (!text.trim()) return;
     setSaving(true);
-    await fetch("/api/snippets", {
+    await fetch(api("/api/snippets"), {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ cleanText: text, categories }),
+      body: JSON.stringify({ cleanText: text, categories, inputType }),
     });
     setSaving(false);
     onSaved();

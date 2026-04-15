@@ -7,12 +7,16 @@ export async function GET() {
 
 export async function POST(request: Request) {
   const body = await request.json();
-  const { cleanText, categories } = body;
+  const { cleanText, categories, inputType } = body;
 
   if (!cleanText || typeof cleanText !== "string") {
     return NextResponse.json({ error: "cleanText is required" }, { status: 400 });
   }
 
-  const snippet = createSnippet(cleanText.trim(), Array.isArray(categories) ? categories : []);
+  const snippet = createSnippet(
+    cleanText.trim(),
+    Array.isArray(categories) ? categories : [],
+    inputType === "spoken" ? "spoken" : "typed"
+  );
   return NextResponse.json(snippet, { status: 201 });
 }

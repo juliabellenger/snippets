@@ -27,26 +27,29 @@ export default function SnippetCard({ snippet }: { snippet: Snippet }) {
       href={`/snippet/${snippet.id}`}
       className="block rounded-sm border-[1.5px] border-gold/30 bg-cream-light p-4 hover:border-gold/60 transition-colors"
     >
-      <p className="text-slate text-sm leading-relaxed">{preview}</p>
-      {snippet.categories.length > 0 && (
-        <div className="mt-2 flex flex-wrap gap-2">
-          {snippet.categories.map((cat) => (
-            <span
-              key={cat}
-              onClick={(e) => {
-                e.preventDefault();
-                window.location.href = `/category/${encodeURIComponent(cat)}`;
-              }}
-              className="font-heading text-xs tracking-wider text-gold hover:text-gold-light cursor-pointer transition-colors"
-            >
-              {cat}
-            </span>
-          ))}
-        </div>
-      )}
-      <p className="mt-1.5 text-xs text-slate-light/50 italic">
-        {timeAgo(snippet.createdAt)}
-      </p>
+      <p className="text-slate text-sm leading-relaxed truncate">{preview}</p>
+      <div className="mt-1.5 flex items-center gap-2 text-xs">
+        <span className="text-slate-light/50 italic">
+          {timeAgo(snippet.createdAt)}
+        </span>
+        {snippet.categories.length > 0 && (
+          <>
+            <span className="text-gold/40">·</span>
+            {snippet.categories.map((cat) => (
+              <span
+                key={cat}
+                onClick={(e) => {
+                  e.preventDefault();
+                  window.location.href = `/category/${encodeURIComponent(cat)}`;
+                }}
+                className="font-heading tracking-wider text-gold hover:text-gold-light cursor-pointer transition-colors"
+              >
+                {cat}
+              </span>
+            ))}
+          </>
+        )}
+      </div>
     </Link>
   );
 }

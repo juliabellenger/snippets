@@ -29,14 +29,15 @@ export function getSnippet(id: string): Snippet | undefined {
 
 export function createSnippet(
   cleanText: string,
-  categories: string[]
+  categories: string[],
+  inputType: "typed" | "spoken" = "typed"
 ): Snippet {
   const snippets = readAll();
   const now = new Date().toISOString();
   const snippet: Snippet = {
     id: crypto.randomUUID(),
     cleanText,
-    inputType: "typed",
+    inputType,
     categories,
     createdAt: now,
     updatedAt: now,

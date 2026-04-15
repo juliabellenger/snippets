@@ -3,6 +3,7 @@
 import { useState, useEffect, use } from "react";
 import { useRouter } from "next/navigation";
 import { Snippet } from "@/lib/types";
+import { api } from "@/lib/api";
 import SnippetCard from "@/components/SnippetCard";
 
 export default function CategoryPage({
@@ -16,7 +17,7 @@ export default function CategoryPage({
   const [snippets, setSnippets] = useState<Snippet[]>([]);
 
   useEffect(() => {
-    fetch("/api/snippets")
+    fetch(api("/api/snippets"))
       .then((r) => r.json())
       .then((all: Snippet[]) =>
         setSnippets(all.filter((s) => s.categories.includes(categoryName)))
