@@ -21,6 +21,12 @@ async function withBasePath(req: NextRequest) {
 }
 
 export async function GET(req: NextRequest) {
+  if (req.nextUrl.pathname.includes("callback")) {
+    console.log("RAW_COOKIE_HEADER_BEFORE", req.headers.get("cookie"));
+    const rebuilt = await withBasePath(req);
+    console.log("RAW_COOKIE_HEADER_AFTER", rebuilt.headers.get("cookie"));
+    return handlers.GET(rebuilt);
+  }
   return handlers.GET(await withBasePath(req));
 }
 
