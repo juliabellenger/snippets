@@ -37,6 +37,9 @@ yarn-error.log*
 # Google OAuth tokens — never commit, contains live credentials
 /data/google-tokens.json
 
+# Per-user runtime state, not sample data
+/data/dismissed-emails.json
+
 # vercel
 .vercel
 

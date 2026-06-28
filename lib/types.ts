@@ -17,6 +17,7 @@ export interface CalendarEvent {
   id: string;
   title: string;
   start: string; // ISO timestamp, or date (YYYY-MM-DD) for all-day events
+  end?: string; // ISO timestamp, or date (YYYY-MM-DD) for all-day events
   allDay: boolean;
   link?: string;
 }
@@ -29,6 +30,8 @@ export interface EmailSummary {
   unread: boolean;
   starred: boolean;
   link: string;
+  needsReply: boolean;
+  summary: string;
 }
 
 export interface GoogleTask {

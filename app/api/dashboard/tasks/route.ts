@@ -60,7 +60,7 @@ export async function POST(request: Request) {
   }
 
   const body = await request.json();
-  const { title, due } = body;
+  const { title, due, notes } = body;
   if (!title || typeof title !== "string") {
     return NextResponse.json({ error: "title is required" }, { status: 400 });
   }
@@ -76,6 +76,7 @@ export async function POST(request: Request) {
       body: JSON.stringify({
         title: title.trim(),
         due: typeof due === "string" && due ? `${due}T00:00:00.000Z` : undefined,
+        notes: typeof notes === "string" && notes ? notes : undefined,
       }),
     }
   );

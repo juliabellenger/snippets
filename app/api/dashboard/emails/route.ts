@@ -1,5 +1,8 @@
 import { NextResponse } from "next/server";
+import { auth } from "@/auth";
 import { getSessionAccessToken } from "@/lib/googleApi";
+import { getDismissedEmailIds } from "@/lib/dismissedEmails";
+import { classifyEmail } from "@/lib/gemini";
 import { EmailSummary } from "@/lib/types";
 
 interface GmailHeader {
@@ -14,7 +17,6 @@ interface GmailMessage {
   payload?: { headers?: GmailHeader[] };
 }
 
-const SCHOOL_OR_DISTRICT = /school|district/i;
 const MAX_RESULTS = 20;
 
 async function listMessageIds(authHeader: HeadersInit, q: string) {
@@ -29,35 +31,38 @@ async function listMessageIds(authHeader: HeadersInit, q: string) {
 }
 
 export async function GET() {
+  const session = await auth();
   const accessToken = await getSessionAccessToken();
-  if (!accessToken) {
+  if (!accessToken || !session?.user?.email) {
     return NextResponse.json(
       { error: "Not connected to Gmail. Try signing out and back in." },
       { status: 401 }
     );
   }
 
+  const dismissed = getDismissedEmailIds(session.user.email);
   const authHeader = { Authorization: `Bearer ${accessToken}` };
 
-  // Unread mail, with marketing/social noise filtered out, plus anything
-  // from a school or district regardless of read state — those shouldn't
-  // get buried even if already glanced at.
-  const [unreadIds, schoolIds] = await Promise.all([
-    listMessageIds(authHeader, "in:inbox is:unread -category:promotions -category:social"),
-    listMessageIds(authHeader, "in:inbox (school OR district)"),
+  // Exclude bulk/automated categories. School emails fetched separately
+  // since they often land in Updates rather than Primary.
+  const [primaryIds, schoolIds] = await Promise.all([
+    listMessageIds(
+      authHeader,
+      "in:inbox is:unread -category:promotions -category:social -category:updates -category:forums"
+    ),
+    listMessageIds(authHeader, "in:inbox is:unread (school OR district)"),
   ]);
 
-  if (unreadIds === null && schoolIds === null) {
+  if (primaryIds === null && schoolIds === null) {
     return NextResponse.json(
       { error: "Couldn't load Gmail messages." },
       { status: 502 }
     );
   }
 
-  const ids = Array.from(new Set([...(unreadIds ?? []), ...(schoolIds ?? [])])).slice(
-    0,
-    MAX_RESULTS
-  );
+  const ids = Array.from(new Set([...(primaryIds ?? []), ...(schoolIds ?? [])]))
+    .filter((id) => !dismissed.has(id))
+    .slice(0, MAX_RESULTS);
 
   const messages = await Promise.all(
     ids.map((id) =>
@@ -68,7 +73,7 @@ export async function GET() {
     )
   );
 
-  const emails: EmailSummary[] = messages
+  const baseEmails = messages
     .filter((m): m is GmailMessage => m !== null)
     .map((m) => {
       const headers = m.payload?.headers ?? [];
@@ -86,12 +91,18 @@ export async function GET() {
         link: `https://mail.google.com/mail/u/0/#inbox/${m.id}`,
       };
     })
-    // Belt-and-suspenders: keep school/district mail even if Gmail's
-    // category filter on the unread query would otherwise have excluded it.
-    .filter(
-      (e) =>
-        e.unread || SCHOOL_OR_DISTRICT.test(e.from) || SCHOOL_OR_DISTRICT.test(e.subject)
-    );
+    ;
+
+  const classified = await Promise.all(
+    baseEmails.map(async (e) => {
+      const { show, needsReply, summary } = await classifyEmail(e);
+      return { ...e, needsReply, summary, show };
+    })
+  );
+
+  const emails: EmailSummary[] = classified
+    .filter((e) => e.show)
+    .map(({ show: _show, ...e }) => e);
 
   return NextResponse.json(emails);
 }

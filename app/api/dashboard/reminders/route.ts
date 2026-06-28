@@ -10,7 +10,7 @@ interface GCalEvent {
   recurringEventId?: string;
 }
 
-export async function GET() {
+export async function GET(request: Request) {
   const accessToken = await getSessionAccessToken();
   if (!accessToken) {
     return NextResponse.json(
@@ -19,8 +19,10 @@ export async function GET() {
     );
   }
 
+  const { searchParams } = new URL(request.url);
+  const days = parseInt(searchParams.get("days") ?? "90", 10);
   const timeMin = new Date().toISOString();
-  const timeMax = new Date(Date.now() + 60 * 24 * 60 * 60 * 1000).toISOString();
+  const timeMax = new Date(Date.now() + days * 24 * 60 * 60 * 1000).toISOString();
   const params = new URLSearchParams({
     timeMin,
     timeMax,

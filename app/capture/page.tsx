@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback, useRef } from "react";
 import Link from "next/link";
+import { Feather, Mic, Square } from "lucide-react";
 import { Snippet, CategorySummary } from "@/lib/types";
 import { api } from "@/lib/api";
 import SnippetCard from "@/components/SnippetCard";
@@ -123,7 +124,9 @@ export default function Home() {
               : "border-gold bg-cream-light text-slate hover:bg-gold-faint"
           }`}
         >
-          <span className="text-2xl">{isListening ? "⏹" : "🎙"}</span>
+          {isListening
+            ? <Square className="h-6 w-6" />
+            : <Mic className="h-6 w-6" />}
           <span className="font-heading text-sm tracking-wider">
             {isListening ? "Stop" : "Speak"}
           </span>
@@ -132,7 +135,7 @@ export default function Home() {
           onClick={openTypeForm}
           className="flex flex-col items-center justify-center gap-1 rounded-lg border-[1.5px] border-gold bg-cream-light p-6 text-slate hover:bg-gold-faint transition-colors"
         >
-          <span className="text-2xl">🪶</span>
+          <Feather className="h-6 w-6" />
           <span className="font-heading text-sm tracking-wider">Type</span>
         </button>
       </div>

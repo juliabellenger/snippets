@@ -29,7 +29,7 @@ export default async function RootLayout({
             <div className="flex items-center justify-between gap-2 px-4 pt-3 text-xs">
               <nav className="flex gap-3 font-heading tracking-wider text-slate-light/70">
                 <Link href="/" className="hover:text-gold">
-                  Dashboard
+                  Glance
                 </Link>
                 <Link href="/capture" className="hover:text-gold">
                   Capture
