@@ -19,25 +19,38 @@ export async function GET() {
     );
   }
 
-  const params = new URLSearchParams({
-    showCompleted: "false",
-    maxResults: "50",
-  });
+  const authHeader = { Authorization: `Bearer ${accessToken}` };
 
-  const response = await fetch(
-    `https://tasks.googleapis.com/tasks/v1/lists/@default/tasks?${params}`,
-    { headers: { Authorization: `Bearer ${accessToken}` } }
+  // Fetch all task lists first so we don't miss tasks outside @default
+  const listsRes = await fetch(
+    "https://tasks.googleapis.com/tasks/v1/users/@me/lists?maxResults=20",
+    { headers: authHeader }
   );
-
-  if (!response.ok) {
+  if (!listsRes.ok) {
     return NextResponse.json(
       { error: "Couldn't load Google Tasks." },
       { status: 502 }
     );
   }
+  const listsData = await listsRes.json();
+  const allLists = (listsData.items ?? []) as { id: string; title?: string }[];
+  const todoList = allLists.find((l) => /todo/i.test(l.title ?? ""));
+  const listIds: string[] = todoList ? [todoList.id] : allLists.map((l) => l.id);
 
-  const data = await response.json();
-  const tasks: GoogleTask[] = ((data.items ?? []) as GTask[])
+  const params = new URLSearchParams({ showCompleted: "false", maxResults: "50" });
+
+  const allItems = (
+    await Promise.all(
+      listIds.map((id) =>
+        fetch(
+          `https://tasks.googleapis.com/tasks/v1/lists/${encodeURIComponent(id)}/tasks?${params}`,
+          { headers: authHeader }
+        ).then((r) => (r.ok ? r.json() : { items: [] }))
+      )
+    )
+  ).flatMap((data) => (data.items ?? []) as GTask[]);
+
+  const tasks: GoogleTask[] = allItems
     .map((t) => ({
       id: t.id,
       title: t.title ?? "(Untitled)",

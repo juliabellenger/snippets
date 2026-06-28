@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Calendar, CheckSquare } from "lucide-react";
+import { Calendar } from "lucide-react";
 import { CalendarEvent, GoogleTask } from "@/lib/types";
 import { api } from "@/lib/api";
 
@@ -61,8 +61,6 @@ function TaskRow({
 
   return (
     <li className="flex items-baseline gap-2 text-sm">
-      <CheckSquare className="shrink-0 h-4 w-4 text-slate" />
-      <span className="flex-1 min-w-0 truncate text-slate">{task.title}</span>
       <input
         type="checkbox"
         disabled={saving}
@@ -70,6 +68,7 @@ function TaskRow({
         className="shrink-0 h-4 w-4 accent-gold cursor-pointer"
         aria-label={`Mark "${task.title}" complete`}
       />
+      <span className="flex-1 min-w-0 truncate text-slate">{task.title}</span>
     </li>
   );
 }

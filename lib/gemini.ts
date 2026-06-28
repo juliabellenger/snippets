@@ -27,15 +27,22 @@ export async function classifyEmail(input: {
   try {
     const response = await ai.models.generateContent({
       model: "gemini-2.0-flash",
-      contents: `You triage emails for a busy person. Determine whether this email belongs on their dashboard.
+      contents: `You triage emails for a busy person. Be very conservative — when in doubt, do NOT show.
 
-SHOW the email if EITHER:
-1. It is from an individual human (not a company, organization, automated system, or mailing list), OR
-2. It contains an important call to action requiring a personal decision or response (e.g. sign a permission slip, confirm attendance, approve something, respond to a request).
+SHOW only if one of these is clearly true:
+1. A real person in her life (family, friend, teacher, coach, colleague, doctor's office staff) wrote to her personally and it needs a response or action.
+2. A school or institution requires a specific personal action (sign a form, confirm attendance, approve something, pay a specific fee, respond to a specific request about her child).
 
-DO NOT show: newsletters, receipts, shipping notices, account notifications, marketing from orgs, FYI updates, automated alerts, or anything that doesn't need a personal response.
+DO NOT show anything else, including:
+- Any company, brand, service, or app — even with a "call to action"
+- Newsletters, receipts, order confirmations, shipping/delivery notices
+- Bank/financial alerts, subscription notices, account notifications
+- Appointment reminders from businesses (only show if a human staff member is asking a question)
+- Automated emails that use a person's name in the From field
+- Informational updates from organizations, even schools
+- Anything where no reply or personal decision is required
 
-If shown: write a concise summary (under 140 chars). If it needs a reply, describe the action needed. If informational, state the key info.
+If shown: one concise line describing the specific action needed.
 
 Respond with ONLY: {"show": boolean, "needsReply": boolean, "summary": string}
 
@@ -56,5 +63,5 @@ Preview: ${input.snippet}`,
     // Fall through to fallback.
   }
 
-  return { show: true, needsReply: false, summary: input.snippet.slice(0, 140) };
+  return { show: false, needsReply: false, summary: "" };
 }

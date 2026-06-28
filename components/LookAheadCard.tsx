@@ -1,7 +1,9 @@
 "use client";
 
-import { Calendar, Bell, CheckSquare } from "lucide-react";
+import { useState } from "react";
+import { Calendar, Bell } from "lucide-react";
 import { CalendarEvent, GoogleTask } from "@/lib/types";
+import { api } from "@/lib/api";
 
 function formatDate(iso: string): string {
   // iso is either "YYYY-MM-DD" (all-day) or a full dateTime string
@@ -45,13 +47,35 @@ function EventRow({ event }: { event: CalendarEvent }) {
   );
 }
 
-function TaskRow({ task }: { task: GoogleTask }) {
+function TaskRow({ task, onCompleted }: { task: GoogleTask; onCompleted: (id: string) => void }) {
+  const [saving, setSaving] = useState(false);
   const date = task.due ? formatDate(task.due.slice(0, 10)) : "";
+
+  async function handleToggle() {
+    setSaving(true);
+    const response = await fetch(api(`/api/dashboard/tasks/${task.id}`), {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ completed: true }),
+    });
+    if (response.ok) {
+      onCompleted(task.id);
+    } else {
+      setSaving(false);
+    }
+  }
+
   return (
     <li className="flex items-baseline gap-2 text-sm">
-      <CheckSquare className="shrink-0 h-4 w-4 text-slate mt-0.5" />
-      <span className="shrink-0 font-heading text-xs tracking-wider text-gold w-20">{date}</span>
+      <input
+        type="checkbox"
+        disabled={saving}
+        onChange={handleToggle}
+        className="shrink-0 h-4 w-4 accent-gold cursor-pointer"
+        aria-label={`Mark "${task.title}" complete`}
+      />
       <span className="flex-1 min-w-0 truncate text-slate">{task.title}</span>
+      {date && <span className="shrink-0 font-heading text-xs tracking-wider text-gold">{date}</span>}
     </li>
   );
 }
@@ -78,10 +102,12 @@ export default function LookAheadCard({
   events,
   tasks,
   reminders,
+  onTaskCompleted,
 }: {
   events: CalendarEvent[];
   tasks: GoogleTask[];
   reminders: CalendarEvent[];
+  onTaskCompleted: (id: string) => void;
 }) {
   const empty = events.length === 0 && tasks.length === 0 && reminders.length === 0;
   if (empty) {
@@ -102,7 +128,7 @@ export default function LookAheadCard({
             <EventRow key={e.id} event={e} />
           ))}
           {tasks.map((t) => (
-            <TaskRow key={t.id} task={t} />
+            <TaskRow key={t.id} task={t} onCompleted={onTaskCompleted} />
           ))}
         </ul>
       )}

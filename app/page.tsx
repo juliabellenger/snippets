@@ -7,6 +7,7 @@ import DashboardCard from "@/components/DashboardCard";
 import TodayCard from "@/components/TodayCard";
 import LookAheadCard from "@/components/LookAheadCard";
 import EmailList from "@/components/EmailList";
+import NewTaskForm from "@/components/NewTaskForm";
 
 function useDashboardSection<T>(path: string) {
   const [data, setData] = useState<T[] | null>(null);
@@ -15,8 +16,9 @@ function useDashboardSection<T>(path: string) {
   useEffect(() => {
     fetch(api(path))
       .then(async (r) => {
-        const body = await r.json();
-        if (!r.ok) throw new Error(body.error ?? "Something went wrong.");
+        const text = await r.text();
+        const body = text ? JSON.parse(text) : {};
+        if (!r.ok) throw new Error(body.error ?? `Error ${r.status}`);
         setData(body);
       })
       .catch((e) => setError(e.message));
@@ -90,8 +92,13 @@ export default function Dashboard() {
   const dueOrOverdueTasks = (tasks.data ?? []).filter(
     (t) => t.due && t.due.slice(0, 10) <= todayStr
   );
+  const oneMonthOut = (() => {
+    const d = new Date();
+    d.setMonth(d.getMonth() + 1);
+    return dateParam(d);
+  })();
   const upcomingTasks = (tasks.data ?? []).filter(
-    (t) => t.due && t.due.slice(0, 10) > todayStr && t.due.slice(0, 10) <= to
+    (t) => !t.due || (t.due.slice(0, 10) > todayStr && t.due.slice(0, 10) <= oneMonthOut)
   );
 
   return (
@@ -127,12 +134,18 @@ export default function Dashboard() {
           />
         </DashboardCard>
 
-
+        <DashboardCard title="New Task" loading={false} error={null} isEmpty={false} emptyMessage="">
+          <NewTaskForm
+            onCreated={(task) =>
+              tasks.setData([task, ...(tasks.data ?? [])])
+            }
+          />
+        </DashboardCard>
 
         <DashboardCard
           title="Looking Forward"
-          loading={upcoming.loading || reminders.loading}
-          error={upcoming.error ?? reminders.error}
+          loading={upcoming.loading || reminders.loading || tasks.loading}
+          error={upcoming.error ?? reminders.error ?? tasks.error}
           isEmpty={false}
           emptyMessage=""
         >
@@ -140,6 +153,9 @@ export default function Dashboard() {
             events={upcoming.data ?? []}
             tasks={upcomingTasks}
             reminders={reminders.data ?? []}
+            onTaskCompleted={(id) =>
+              tasks.setData((tasks.data ?? []).filter((t) => t.id !== id))
+            }
           />
         </DashboardCard>
 

@@ -1,0 +1,23 @@
+{
+  "hosting": {
+    "public": "public",
+    "ignore": ["firebase.json", "**/.*"],
+    "redirects": [
+      {
+        "source": "/",
+        "destination": "/snippets",
+        "type": 301
+      }
+    ],
+    "rewrites": [
+      {
+        "source": "/snippets",
+        "run": { "serviceId": "snippets", "region": "us-central1" }
+      },
+      {
+        "source": "/snippets/**",
+        "run": { "serviceId": "snippets", "region": "us-central1" }
+      }
+    ]
+  }
+}

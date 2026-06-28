@@ -45,22 +45,16 @@ export async function GET() {
 
   // Exclude bulk/automated categories. School emails fetched separately
   // since they often land in Updates rather than Primary.
-  const [primaryIds, schoolIds] = await Promise.all([
-    listMessageIds(
-      authHeader,
-      "in:inbox is:unread -category:promotions -category:social -category:updates -category:forums"
-    ),
-    listMessageIds(authHeader, "in:inbox is:unread (school OR district)"),
-  ]);
+  const allIds = await listMessageIds(authHeader, "in:inbox");
 
-  if (primaryIds === null && schoolIds === null) {
+  if (allIds === null) {
     return NextResponse.json(
       { error: "Couldn't load Gmail messages." },
       { status: 502 }
     );
   }
 
-  const ids = Array.from(new Set([...(primaryIds ?? []), ...(schoolIds ?? [])]))
+  const ids = allIds
     .filter((id) => !dismissed.has(id))
     .slice(0, MAX_RESULTS);
 
