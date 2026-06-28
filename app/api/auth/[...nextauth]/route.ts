@@ -5,18 +5,25 @@ import { handlers } from "@/auth";
 // from `request.url` before it reaches this route handler, but Auth.js needs
 // the full external path (matching auth.ts's basePath) to build correct
 // sign-in/callback URLs for the OAuth provider. Add the prefix back.
-function withBasePath(req: NextRequest) {
+async function withBasePath(req: NextRequest) {
   const url = new URL(req.url);
   if (!url.pathname.startsWith("/snippets")) {
     url.pathname = `/snippets${url.pathname}`;
   }
-  return new NextRequest(url, req);
+  const hasBody = req.method !== "GET" && req.method !== "HEAD";
+  return new NextRequest(url, {
+    method: req.method,
+    headers: new Headers(req.headers),
+    body: hasBody ? await req.blob() : undefined,
+    duplex: hasBody ? "half" : undefined,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  } as any);
 }
 
 export async function GET(req: NextRequest) {
-  return handlers.GET(withBasePath(req));
+  return handlers.GET(await withBasePath(req));
 }
 
 export async function POST(req: NextRequest) {
-  return handlers.POST(withBasePath(req));
+  return handlers.POST(await withBasePath(req));
 }
