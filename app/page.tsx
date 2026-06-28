@@ -92,12 +92,7 @@ export default function Dashboard() {
           isEmpty={(emails.data ?? []).length === 0}
           emptyMessage="Inbox is clear."
         >
-          <EmailList
-            emails={emails.data ?? []}
-            onArchived={(id) =>
-              emails.setData((emails.data ?? []).filter((e) => e.id !== id))
-            }
-          />
+          <EmailList emails={emails.data ?? []} />
         </DashboardCard>
 
         <DashboardCard

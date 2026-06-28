@@ -48,7 +48,7 @@ The app is protected behind Google sign-in (see [proxy.ts](proxy.ts) and [auth.t
 The home page (`app/page.tsx`) pulls live data from Google, which needs extra setup beyond basic sign-in:
 
 1. In the GCP project, enable the **Google Calendar API**, **Gmail API**, and **Google Tasks API** (APIs & Services → Library).
-2. On the **OAuth consent screen**, add these scopes: `calendar.readonly`, `gmail.modify` (read + archive, not just read), `tasks`.
+2. On the **OAuth consent screen**, add these scopes: `calendar.readonly`, `gmail.readonly`, `tasks`. (We deliberately use `gmail.readonly`, not `gmail.modify` — `modify` is a "restricted" scope that Google blocks entirely for unverified apps published "In production." `readonly`/`calendar.readonly` are "sensitive," not "restricted," so they work fine unverified. This means there's no in-app email archive button — archiving has to happen in Gmail itself.)
 3. Set the consent screen's publishing status to **In production** (not "Testing") — otherwise Google expires the refresh token after 7 days and you'll be forced to re-login weekly. Since this app isn't public, you'll see an "unverified app" warning during consent — click through it (Advanced → Go to app).
 4. If you signed in before this change, sign out and back in once so the new scopes are actually granted — old sessions won't have them.
 5. Google OAuth tokens are cached server-side in `data/google-tokens.json` (gitignored — never commit it). Like `data/snippets.json`, this lives on the Cloud Run container's ephemeral disk, so a redeploy clears it and requires one more re-login.

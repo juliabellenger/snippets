@@ -10,7 +10,6 @@ const allowedEmails = (process.env.ALLOWED_EMAILS ?? "")
 export const { handlers, auth, signIn, signOut } = NextAuth({
   basePath: "/snippets/api/auth",
   trustHost: true,
-  debug: true,
   providers: [
     Google({
       authorization: {
@@ -22,7 +21,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
             "email",
             "profile",
             "https://www.googleapis.com/auth/calendar.readonly",
-            "https://www.googleapis.com/auth/gmail.modify",
+            "https://www.googleapis.com/auth/gmail.readonly",
             "https://www.googleapis.com/auth/tasks",
           ].join(" "),
         },
