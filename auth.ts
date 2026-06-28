@@ -10,6 +10,7 @@ const allowedEmails = (process.env.ALLOWED_EMAILS ?? "")
 export const { handlers, auth, signIn, signOut } = NextAuth({
   basePath: "/snippets/api/auth",
   trustHost: true,
+  debug: true,
   providers: [
     Google({
       authorization: {
