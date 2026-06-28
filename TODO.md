@@ -2,7 +2,7 @@
 
 ## Bugs / Not Working
 
-- [ ] **Tasks not appearing in Looking Forward panel** — upcomingTasks filter logic may be excluding all tasks (no due dates set, or all due today/overdue). Added console.log debug in page.tsx to diagnose — check browser console for `[tasks]` output to see due date values. Still not resolved as of 2026-06-28.
+- [x] **Tasks not appearing in Looking Forward panel** — resolved 2026-06-28: was only fetching @default task list; now fetches all lists and filters to TODO list by name.
 
 - [ ] **Emails Needing Attention not surfacing important read emails** — Gemini prompt may be too conservative, filtering out read emails from real people that should be shown. Still not resolved as of 2026-06-28.
 

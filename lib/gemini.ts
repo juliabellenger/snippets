@@ -27,22 +27,21 @@ export async function classifyEmail(input: {
   try {
     const response = await ai.models.generateContent({
       model: "gemini-2.0-flash",
-      contents: `You triage emails for a busy person. Be very conservative — when in doubt, do NOT show.
+      contents: `You triage emails for a busy mom and help her decide what needs attention.
 
-SHOW only if one of these is clearly true:
-1. A real person in her life (family, friend, teacher, coach, colleague, doctor's office staff) wrote to her personally and it needs a response or action.
-2. A school or institution requires a specific personal action (sign a form, confirm attendance, approve something, pay a specific fee, respond to a specific request about her child).
+SHOW the email if any of these apply:
+- A real person (friend, family, teacher, coach, colleague, doctor) wrote to her personally
+- A school or organization needs a specific action from her (sign something, confirm, pay, respond to a request about her child)
+- Something time-sensitive or requiring a personal decision
+- A conversation she is part of that has a new reply needing her attention
 
-DO NOT show anything else, including:
-- Any company, brand, service, or app — even with a "call to action"
-- Newsletters, receipts, order confirmations, shipping/delivery notices
-- Bank/financial alerts, subscription notices, account notifications
-- Appointment reminders from businesses (only show if a human staff member is asking a question)
-- Automated emails that use a person's name in the From field
-- Informational updates from organizations, even schools
-- Anything where no reply or personal decision is required
+DO NOT show:
+- Marketing, promotions, newsletters, or sales emails
+- Automated receipts, shipping notifications, order confirmations
+- Generic account/subscription/billing notifications with no required action
+- Spam or mass emails not addressed to her personally
 
-If shown: one concise line describing the specific action needed.
+If shown, write a one-line reason why it matters — focus on what she needs to do or know. Examples: "Rose's teacher is asking about the field trip permission slip.", "Tom sent a message that needs a reply.", "Dentist appointment needs to be confirmed by Friday."
 
 Respond with ONLY: {"show": boolean, "needsReply": boolean, "summary": string}
 
