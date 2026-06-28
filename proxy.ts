@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { getToken } from "next-auth/jwt";
 
-const PUBLIC_PATHS = ["/login", "/api/auth"];
+const PUBLIC_PATHS = ["/login"];
 
 // Deliberately avoid wrapping with next-auth's `auth()` helper here: it runs
 // the full session-check machinery and reconstructs the NextResponse.next()
@@ -28,5 +28,8 @@ export default async function proxy(req: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/", "/((?!_next/static|_next/image|favicon.ico).*)"],
+  // /api/auth/** is excluded entirely (not just an early return inside the
+  // function) so Proxy never runs on the OAuth callback path at all -- ruling
+  // out any interference from Proxy's request handling on that request.
+  matcher: ["/", "/((?!_next/static|_next/image|favicon.ico|api/auth).*)"],
 };
