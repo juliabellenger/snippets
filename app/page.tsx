@@ -83,7 +83,7 @@ export default function Dashboard() {
     `/api/dashboard/appointments?from=${from}&to=${to}`
   );
   const reminders = useDashboardSection<CalendarEvent>(
-    "/api/dashboard/reminders?days=90"
+    "/api/dashboard/reminders?days=30"
   );
   const emails = useDashboardSection<EmailSummary>("/api/dashboard/emails");
   const tasks = useDashboardSection<GoogleTask>("/api/dashboard/tasks");
