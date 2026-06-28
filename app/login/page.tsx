@@ -7,7 +7,7 @@ export default function LoginPage() {
         Snippets
       </h1>
       <p className="font-script text-2xl text-gold mt-1">
-        save the moments forever
+        life at a glance
       </p>
       <div className="mt-4 mb-10 w-48 border-t border-gold/40" />
       <form
