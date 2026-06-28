@@ -19,6 +19,9 @@ export default async function proxy(req: NextRequest) {
     req,
     secret: process.env.AUTH_SECRET,
     secureCookie: true,
+    // Matches the custom session cookie name in auth.ts -- required because
+    // Firebase Hosting only forwards a cookie named exactly `__session`.
+    cookieName: "__session",
   });
 
   if (!token) {

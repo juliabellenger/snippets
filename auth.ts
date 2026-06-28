@@ -7,12 +7,33 @@ const allowedEmails = (process.env.ALLOWED_EMAILS ?? "")
   .map((e) => e.trim().toLowerCase())
   .filter(Boolean);
 
+// Firebase Hosting's CDN strips all cookies from requests forwarded to Cloud
+// Run except one named exactly `__session` (see
+// https://firebase.google.com/docs/hosting/manage-cache). That broke the
+// PKCE code_verifier cookie on every OAuth callback. Since we're a
+// confidential client (real client secret, not a public/SPA client), PKCE
+// isn't required for security here -- disable it so the callback doesn't
+// depend on any cookie surviving that GET request. The session cookie still
+// needs to survive on every subsequent request, so it's renamed to
+// `__session` below.
 export const { handlers, auth, signIn, signOut } = NextAuth({
   basePath: "/snippets/api/auth",
   trustHost: true,
   debug: true,
+  cookies: {
+    sessionToken: {
+      name: "__session",
+      options: {
+        httpOnly: true,
+        sameSite: "lax",
+        path: "/",
+        secure: true,
+      },
+    },
+  },
   providers: [
     Google({
+      checks: [],
       authorization: {
         params: {
           access_type: "offline",
