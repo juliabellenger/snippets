@@ -4,7 +4,7 @@
 
 - [x] **Tasks not appearing in Looking Forward panel** — resolved 2026-06-28: was only fetching @default task list; now fetches all lists and filters to TODO list by name.
 
-- [ ] **Emails Needing Attention not surfacing important read emails** — Gemini prompt may be too conservative, filtering out read emails from real people that should be shown. Still not resolved as of 2026-06-28.
+- [ ] **Emails Needing Attention — Gemini API key is on free tier with quota: 0** — every classification call returns 429, so no AI filtering is happening. Fallback is now `show: true` so all inbox emails appear unfiltered. To fix: enable billing on the Google AI Studio project that owns this key at aistudio.google.com. Gemini 2.0 Flash is fractions of a cent per request.
 
 - [ ] **Email filtering** — oscillating between too many and too few. Currently: fetch all inbox, run through Gemini with strict prompt. Needs real-world testing to tune.
 
