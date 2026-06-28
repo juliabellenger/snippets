@@ -27,7 +27,7 @@ export default function CategoryPage({
   return (
     <div className="px-4 py-8">
       <button
-        onClick={() => router.push("/")}
+        onClick={() => router.push("/capture")}
         className="mb-4 font-heading text-sm tracking-wider text-gold hover:text-gold-light transition-colors"
       >
         &larr; Back

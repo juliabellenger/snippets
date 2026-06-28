@@ -1,202 +1,154 @@
 "use client";
 
-import { useState, useEffect, useCallback, useRef } from "react";
-import Link from "next/link";
-import { Snippet, CategorySummary } from "@/lib/types";
+import { useEffect, useState } from "react";
+import { CalendarEvent, EmailSummary, GoogleTask } from "@/lib/types";
 import { api } from "@/lib/api";
-import SnippetCard from "@/components/SnippetCard";
-import SnippetForm from "@/components/SnippetForm";
+import DashboardCard from "@/components/DashboardCard";
+import TaskList from "@/components/TaskList";
 
-export default function Home() {
-  const [snippets, setSnippets] = useState<Snippet[]>([]);
-  const [categories, setCategories] = useState<CategorySummary[]>([]);
-  const [showForm, setShowForm] = useState(false);
-  const [formInitialText, setFormInitialText] = useState("");
-  const [formInputType, setFormInputType] = useState<"typed" | "spoken">(
-    "typed"
-  );
-  const [isListening, setIsListening] = useState(false);
-  const [liveTranscript, setLiveTranscript] = useState("");
-  const recognitionRef = useRef<ReturnType<typeof createRecognition> | null>(
-    null
-  );
-
-  const load = useCallback(() => {
-    fetch(api("/api/snippets"))
-      .then((r) => r.json())
-      .then(setSnippets);
-    fetch(api("/api/categories?summaries=true"))
-      .then((r) => r.json())
-      .then(setCategories);
-  }, []);
+function useDashboardSection<T>(path: string) {
+  const [data, setData] = useState<T[] | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    load();
-  }, [load]);
+    fetch(api(path))
+      .then(async (r) => {
+        const body = await r.json();
+        if (!r.ok) throw new Error(body.error ?? "Something went wrong.");
+        setData(body);
+      })
+      .catch((e) => setError(e.message));
+  }, [path]);
 
-  function createRecognition() {
-    const Ctor = window.SpeechRecognition || window.webkitSpeechRecognition;
-    if (!Ctor) return null;
-    const recognition = new Ctor();
-    recognition.continuous = true;
-    recognition.interimResults = true;
-    recognition.lang = "en-US";
-    return recognition;
+  return { data, error, loading: data === null && error === null, setData };
+}
+
+function formatEventStart(event: CalendarEvent): string {
+  if (event.allDay) {
+    return new Date(event.start).toLocaleDateString(undefined, {
+      weekday: "short",
+      month: "short",
+      day: "numeric",
+    });
   }
+  return new Date(event.start).toLocaleString(undefined, {
+    weekday: "short",
+    hour: "numeric",
+    minute: "2-digit",
+  });
+}
 
-  function startListening() {
-    const recognition = createRecognition();
-    if (!recognition) {
-      alert("Speech recognition is not supported in this browser.");
-      return;
-    }
-
-    recognitionRef.current = recognition;
-    let finalTranscript = "";
-
-    recognition.onresult = (event: SpeechRecognitionEvent) => {
-      let interim = "";
-      for (let i = event.resultIndex; i < event.results.length; i++) {
-        const transcript = event.results[i][0].transcript;
-        if (event.results[i].isFinal) {
-          finalTranscript += transcript;
-        } else {
-          interim += transcript;
-        }
-      }
-      setLiveTranscript(finalTranscript + interim);
-    };
-
-    recognition.onerror = () => {
-      setIsListening(false);
-      setLiveTranscript("");
-    };
-
-    recognition.onend = () => {
-      // Speech recognition stopped — open the form with what we got
-      setIsListening(false);
-      if (finalTranscript.trim()) {
-        setFormInitialText(finalTranscript.trim());
-        setFormInputType("spoken");
-        setShowForm(true);
-      }
-      setLiveTranscript("");
-    };
-
-    recognition.start();
-    setIsListening(true);
-    setLiveTranscript("");
-  }
-
-  function stopListening() {
-    if (recognitionRef.current) {
-      recognitionRef.current.stop();
-    }
-  }
-
-  function openTypeForm() {
-    setFormInitialText("");
-    setFormInputType("typed");
-    setShowForm(true);
-  }
+export default function Dashboard() {
+  const appointments = useDashboardSection<CalendarEvent>(
+    "/api/dashboard/appointments"
+  );
+  const reminders = useDashboardSection<CalendarEvent>(
+    "/api/dashboard/reminders"
+  );
+  const emails = useDashboardSection<EmailSummary>("/api/dashboard/emails");
+  const tasks = useDashboardSection<GoogleTask>("/api/dashboard/tasks");
 
   return (
     <div className="px-4 py-8">
-      {/* Header */}
       <div className="text-center mb-8">
         <h1 className="font-heading text-4xl tracking-[0.15em] text-slate">
-          Snippets
+          Today
         </h1>
-        <p className="font-script text-2xl text-gold mt-1">
-          save the moments forever
-        </p>
         <div className="mt-4 mx-auto w-48 border-t border-gold/40" />
       </div>
 
-      {/* Capture buttons */}
-      <div className="grid grid-cols-2 gap-3 mb-8">
-        <button
-          onClick={isListening ? stopListening : startListening}
-          className={`flex flex-col items-center justify-center gap-1 rounded-lg border-[1.5px] p-6 transition-colors ${
-            isListening
-              ? "border-danger bg-danger/10 text-danger"
-              : "border-gold bg-cream-light text-slate hover:bg-gold-faint"
-          }`}
+      <div className="flex flex-col gap-4">
+        <DashboardCard
+          title="Appointments"
+          loading={appointments.loading}
+          error={appointments.error}
+          isEmpty={(appointments.data ?? []).length === 0}
+          emptyMessage="Nothing on the calendar this week."
         >
-          <span className="text-2xl">{isListening ? "⏹" : "🎙"}</span>
-          <span className="font-heading text-sm tracking-wider">
-            {isListening ? "Stop" : "Speak"}
-          </span>
-        </button>
-        <button
-          onClick={openTypeForm}
-          className="flex flex-col items-center justify-center gap-1 rounded-lg border-[1.5px] border-gold bg-cream-light p-6 text-slate hover:bg-gold-faint transition-colors"
-        >
-          <span className="text-2xl">🪶</span>
-          <span className="font-heading text-sm tracking-wider">Type</span>
-        </button>
-      </div>
-
-      {/* Live transcript while speaking */}
-      {isListening && (
-        <div className="mb-8 rounded-lg border-[1.5px] border-danger/30 bg-cream-light p-4">
-          <p className="font-heading text-xs tracking-[0.2em] text-danger uppercase mb-2">
-            Listening...
-          </p>
-          <p className="text-slate text-sm leading-relaxed italic">
-            {liveTranscript || "Start speaking..."}
-          </p>
-        </div>
-      )}
-
-      {/* Categories */}
-      {categories.length > 0 && (
-        <div className="mb-8">
-          <h2 className="font-heading text-xs tracking-[0.2em] text-slate-light uppercase mb-3">
-            Categories
-          </h2>
-          <div className="flex flex-wrap gap-2">
-            {categories.map((cat) => (
-              <Link
-                key={cat.name}
-                href={`/category/${encodeURIComponent(cat.name)}`}
-                className="inline-flex items-center gap-1.5 rounded-lg border border-gold/50 bg-cream-light px-3 py-1.5 font-heading text-sm tracking-wider text-slate hover:bg-gold-faint transition-colors"
-              >
-                {cat.name}
-                <span className="text-xs text-gold font-body">
-                  {cat.count}
+          <ul className="flex flex-col gap-2">
+            {(appointments.data ?? []).map((event) => (
+              <li key={event.id} className="flex items-baseline justify-between gap-2 text-sm">
+                <a
+                  href={event.link}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="text-slate hover:text-gold-light"
+                >
+                  {event.title}
+                </a>
+                <span className="shrink-0 font-heading text-xs tracking-wider text-gold">
+                  {formatEventStart(event)}
                 </span>
-              </Link>
+              </li>
             ))}
-          </div>
-        </div>
-      )}
+          </ul>
+        </DashboardCard>
 
-      {/* Snippet feed */}
-      {snippets.length === 0 ? (
-        <p className="text-center text-slate-light/60 text-sm mt-12 italic">
-          No snippets yet. Tap Type or Speak to create your first one.
-        </p>
-      ) : (
-        <div className="flex flex-col gap-3">
-          {snippets.map((s) => (
-            <SnippetCard key={s.id} snippet={s} />
-          ))}
-        </div>
-      )}
+        <DashboardCard
+          title="Emails Needing Attention"
+          loading={emails.loading}
+          error={emails.error}
+          isEmpty={(emails.data ?? []).length === 0}
+          emptyMessage="Inbox is clear."
+        >
+          <ul className="flex flex-col gap-2">
+            {(emails.data ?? []).map((email) => (
+              <li key={email.id}>
+                <a
+                  href={email.link}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="block"
+                >
+                  <div className="flex items-baseline justify-between gap-2 text-sm">
+                    <span className={email.unread ? "text-slate font-semibold" : "text-slate"}>
+                      {email.from.split("<")[0].trim()}
+                    </span>
+                    {email.starred && <span className="text-gold">★</span>}
+                  </div>
+                  <p className="text-slate-light/70 text-xs truncate">
+                    {email.subject}
+                  </p>
+                </a>
+              </li>
+            ))}
+          </ul>
+        </DashboardCard>
 
-      {/* Form modal */}
-      {showForm && (
-        <SnippetForm
-          initialText={formInitialText}
-          inputType={formInputType}
-          onSaved={() => {
-            setShowForm(false);
-            load();
-          }}
-          onCancel={() => setShowForm(false)}
-        />
-      )}
+        <DashboardCard
+          title="Tasks"
+          loading={tasks.loading}
+          error={tasks.error}
+          isEmpty={false}
+          emptyMessage=""
+        >
+          <TaskList
+            tasks={tasks.data ?? []}
+            onTaskAdded={(task) =>
+              tasks.setData([...(tasks.data ?? []), task])
+            }
+          />
+        </DashboardCard>
+
+        <DashboardCard
+          title="Annual Reminders"
+          loading={reminders.loading}
+          error={reminders.error}
+          isEmpty={(reminders.data ?? []).length === 0}
+          emptyMessage="Nothing coming up in the next 60 days."
+        >
+          <ul className="flex flex-col gap-2">
+            {(reminders.data ?? []).map((event) => (
+              <li key={event.id} className="flex items-baseline justify-between gap-2 text-sm">
+                <span className="text-slate">{event.title}</span>
+                <span className="shrink-0 font-heading text-xs tracking-wider text-gold">
+                  {formatEventStart(event)}
+                </span>
+              </li>
+            ))}
+          </ul>
+        </DashboardCard>
+      </div>
     </div>
   );
 }

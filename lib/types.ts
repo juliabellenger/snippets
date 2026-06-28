@@ -12,3 +12,29 @@ export interface CategorySummary {
   count: number;
   lastUsed: string; // ISO timestamp of most recent snippet in this category
 }
+
+export interface CalendarEvent {
+  id: string;
+  title: string;
+  start: string; // ISO timestamp, or date (YYYY-MM-DD) for all-day events
+  allDay: boolean;
+  link?: string;
+}
+
+export interface EmailSummary {
+  id: string;
+  subject: string;
+  from: string;
+  snippet: string;
+  unread: boolean;
+  starred: boolean;
+  link: string;
+}
+
+export interface GoogleTask {
+  id: string;
+  title: string;
+  due?: string; // ISO date
+  notes?: string;
+  completed: boolean;
+}

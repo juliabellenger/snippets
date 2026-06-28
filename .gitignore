@@ -32,6 +32,10 @@ yarn-error.log*
 
 # env files (can opt-in for committing if needed)
 .env*
+!.env.example
+
+# Google OAuth tokens — never commit, contains live credentials
+/data/google-tokens.json
 
 # vercel
 .vercel

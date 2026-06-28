@@ -41,7 +41,7 @@ export default function SnippetDetail({
   async function handleDelete() {
     if (!confirm("Delete this snippet?")) return;
     await fetch(api(`/api/snippets/${id}`), { method: "DELETE" });
-    router.push("/");
+    router.push("/capture");
   }
 
   if (!snippet) {
