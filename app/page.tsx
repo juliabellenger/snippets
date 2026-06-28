@@ -5,6 +5,7 @@ import { CalendarEvent, EmailSummary, GoogleTask } from "@/lib/types";
 import { api } from "@/lib/api";
 import DashboardCard from "@/components/DashboardCard";
 import TaskList from "@/components/TaskList";
+import EmailList from "@/components/EmailList";
 
 function useDashboardSection<T>(path: string) {
   const [data, setData] = useState<T[] | null>(null);
@@ -91,28 +92,12 @@ export default function Dashboard() {
           isEmpty={(emails.data ?? []).length === 0}
           emptyMessage="Inbox is clear."
         >
-          <ul className="flex flex-col gap-2">
-            {(emails.data ?? []).map((email) => (
-              <li key={email.id}>
-                <a
-                  href={email.link}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="block"
-                >
-                  <div className="flex items-baseline justify-between gap-2 text-sm">
-                    <span className={email.unread ? "text-slate font-semibold" : "text-slate"}>
-                      {email.from.split("<")[0].trim()}
-                    </span>
-                    {email.starred && <span className="text-gold">★</span>}
-                  </div>
-                  <p className="text-slate-light/70 text-xs truncate">
-                    {email.subject}
-                  </p>
-                </a>
-              </li>
-            ))}
-          </ul>
+          <EmailList
+            emails={emails.data ?? []}
+            onArchived={(id) =>
+              emails.setData((emails.data ?? []).filter((e) => e.id !== id))
+            }
+          />
         </DashboardCard>
 
         <DashboardCard

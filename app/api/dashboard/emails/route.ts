@@ -14,6 +14,20 @@ interface GmailMessage {
   payload?: { headers?: GmailHeader[] };
 }
 
+const SCHOOL_OR_DISTRICT = /school|district/i;
+const MAX_RESULTS = 20;
+
+async function listMessageIds(authHeader: HeadersInit, q: string) {
+  const params = new URLSearchParams({ q, maxResults: "25" });
+  const response = await fetch(
+    `https://gmail.googleapis.com/gmail/v1/users/me/messages?${params}`,
+    { headers: authHeader }
+  );
+  if (!response.ok) return null;
+  const data = await response.json();
+  return ((data.messages ?? []) as { id: string }[]).map((m) => m.id);
+}
+
 export async function GET() {
   const accessToken = await getSessionAccessToken();
   if (!accessToken) {
@@ -24,26 +38,25 @@ export async function GET() {
   }
 
   const authHeader = { Authorization: `Bearer ${accessToken}` };
-  const params = new URLSearchParams({
-    q: "in:inbox (is:unread OR is:starred)",
-    maxResults: "20",
-  });
 
-  const listResponse = await fetch(
-    `https://gmail.googleapis.com/gmail/v1/users/me/messages?${params}`,
-    { headers: authHeader }
-  );
+  // Unread mail, with marketing/social noise filtered out, plus anything
+  // from a school or district regardless of read state — those shouldn't
+  // get buried even if already glanced at.
+  const [unreadIds, schoolIds] = await Promise.all([
+    listMessageIds(authHeader, "in:inbox is:unread -category:promotions -category:social"),
+    listMessageIds(authHeader, "in:inbox (school OR district)"),
+  ]);
 
-  if (!listResponse.ok) {
+  if (unreadIds === null && schoolIds === null) {
     return NextResponse.json(
       { error: "Couldn't load Gmail messages." },
       { status: 502 }
     );
   }
 
-  const list = await listResponse.json();
-  const ids: string[] = (list.messages ?? []).map(
-    (m: { id: string }) => m.id
+  const ids = Array.from(new Set([...(unreadIds ?? []), ...(schoolIds ?? [])])).slice(
+    0,
+    MAX_RESULTS
   );
 
   const messages = await Promise.all(
@@ -72,7 +85,13 @@ export async function GET() {
         starred: labels.includes("STARRED"),
         link: `https://mail.google.com/mail/u/0/#inbox/${m.id}`,
       };
-    });
+    })
+    // Belt-and-suspenders: keep school/district mail even if Gmail's
+    // category filter on the unread query would otherwise have excluded it.
+    .filter(
+      (e) =>
+        e.unread || SCHOOL_OR_DISTRICT.test(e.from) || SCHOOL_OR_DISTRICT.test(e.subject)
+    );
 
   return NextResponse.json(emails);
 }
