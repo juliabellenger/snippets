@@ -21,7 +21,8 @@ export async function classifyEmail(input: {
 }): Promise<EmailClassification> {
   const ai = getClient();
   if (!ai) {
-    return { show: false, needsReply: false, summary: "" };
+    // No API key — show everything unfiltered
+    return { show: true, needsReply: false, summary: "" };
   }
 
   try {
@@ -58,9 +59,10 @@ Preview: ${input.snippet}`,
     if (typeof parsed.show === "boolean" && typeof parsed.needsReply === "boolean" && typeof parsed.summary === "string") {
       return { show: parsed.show, needsReply: parsed.needsReply, summary: parsed.summary.slice(0, 200) };
     }
-  } catch {
-    // Fall through to fallback.
+  } catch (err) {
+    console.error("[gemini] classifyEmail error:", err);
   }
 
-  return { show: false, needsReply: false, summary: "" };
+  // On any error, show the email rather than silently hiding it
+  return { show: true, needsReply: false, summary: "" };
 }
