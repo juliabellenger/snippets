@@ -27,7 +27,7 @@ export async function classifyEmail(input: {
 
   try {
     const response = await ai.models.generateContent({
-      model: "gemini-2.0-flash",
+      model: "gemini-2.5-flash",
       contents: `You triage emails for a busy mom and help her decide what needs attention.
 
 SHOW the email if any of these apply:
