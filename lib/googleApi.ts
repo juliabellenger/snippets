@@ -1,13 +1,8 @@
 import { auth } from "@/auth";
-import { getValidAccessToken } from "@/lib/googleTokens";
 
-/**
- * Resolves a valid Google access token for the current session, or null if
- * there isn't one (not signed in, or tokens not yet captured/refreshable).
- */
 export async function getSessionAccessToken(): Promise<string | null> {
-  const session = await auth();
-  const email = session?.user?.email;
-  if (!email) return null;
-  return getValidAccessToken(email);
+  const session = await auth() as ({ accessToken?: string; error?: string } & Awaited<ReturnType<typeof auth>>) | null;
+  if (!session?.user?.email) return null;
+  if (session.error === "RefreshTokenError") return null;
+  return session.accessToken ?? null;
 }
